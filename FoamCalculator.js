@@ -166,7 +166,7 @@ jQuery(document).ready(function($)
         });
     }
 
-    function DDboxfill()
+    function DDboxfill() // Do the CM / INCH conversion and fill the list box
     {
         var sizearray = ["0.25", "0.50", "1", "1.5", "2", "2.5", "3", "3.5", "4.0",
             "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"];
@@ -244,7 +244,7 @@ jQuery(document).ready(function($)
         });
 
     }
-    function PolyBox()
+    function PolyBox() 
     {
         if (($("#polywrap").prop('checked')))
         {
@@ -304,7 +304,7 @@ jQuery(document).ready(function($)
 
     }
 
-    function GrabExtrasAjax(type) // Gets the polyester wrap details
+    function GrabExtrasAjax(type) // Gets the extra details
     {
         var wrap_id = $("#Polylistbox").val();
         var wrap_name = $("#Polylistbox option:selected").text();
@@ -542,7 +542,7 @@ jQuery(document).ready(function($)
     }
     // Used to convert custom sizes into the correct rate. 
     // unitdirection is a flag. 1 is inches into other rate and 0 is other rates into inches
-    function SizeConverter(x, y, z, conversion)
+    function SizeConverter(x, y, z, conversion) 
     {
         // dimensionarray
         var dimensionarray = [];
@@ -592,7 +592,7 @@ jQuery(document).ready(function($)
 
     }
 
-    function CalculateAJAX()
+    function CalculateAJAX() // Calculates price
     {
         $('#calculate').off('click');
         $("#errordiv").empty();
