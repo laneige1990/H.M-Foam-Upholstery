@@ -17,13 +17,13 @@ jQuery(document).ready(function($)
     extrasobject.holesextra.id = 0;
     extrasobject.stockinetteextra = {};
     extrasobject.stockinetteextra.id = 0;
-    var ShapeId, inchcm;
+    var ShapeId, inchcm, Shapeimgid;
     var maxmin;
     var currentrate = 0;
     var ddboxdraw = false;
 
     $("#Addedtocart").hide();   //
-    $("#TemplateButton").hide(); // Initially hide some stuff.. //
+    $("#CustomBoxHolder").hide(); // Initially hide some stuff.. //
     $("#UnitBox").hide();        //
     $("#QuoteBox").hide();
     $("#Sideinfo1").hide();
@@ -31,6 +31,12 @@ jQuery(document).ready(function($)
     $("#Sideinfo3").hide();
     $("#Sideinfo4").hide();
     $("#FoamInfo2").hide();
+    $("#step3").append("<div id='step3id' class='error'></div>");
+    $("#step5").append("<div id='step5id' class='error'></div>");
+
+    $.validator.setDefaults({//ensures that the form validates even when elements are hidden. 
+        ignore: []
+    });
 
     function JobType() // Short lists the foam for the job
     {
@@ -132,10 +138,28 @@ jQuery(document).ready(function($)
             {
                 if ($("#ShapeFormID").valid() && $("#quant").valid() && $("#DropDownContainer").valid())
                 {
+                    $("#step5id").empty();
+                    $("#step3id").empty();
                     CalculateAJAX();
                 }
                 else {
                     $('#errordiv').html("There is an error. You must correct it before you can continue.");
+                    if (!$("#quant").valid()) {
+                        $("#step5id").empty();
+                        $("#step5id").append("Please enter a valid number");
+                    }
+                    else {
+                        $("#step5id").empty();
+                    }
+                    ;
+                    if (!$("#ShapeFormID").valid() || !$("#DropDownContainer").valid())
+                    {
+                        $("#step3id").empty();
+                        $("#step3id").append("Please review your measurements");
+                    }
+                    else {
+                        $("#step3id").empty();
+                    }
                 }
             });
 
@@ -204,7 +228,7 @@ jQuery(document).ready(function($)
         $('#DropDownContainer').validate({
             focusInvalid: false,
             errorPlacement: function(error, element) {
-                error.insertAfter(element);
+                error.insertAfter(element, "#step3");
             }
         });
 
@@ -247,6 +271,7 @@ jQuery(document).ready(function($)
         else if ((!$("#stockinette").prop('checked')))
         {
             extrasobject.stockinetteextra.id = 0;
+            extrasobject.polywrapextra.id = 0;
             $("#polywrap").attr("disabled", false);
             $("#stockselect").remove();
             $("#Sideinfo4").hide();
@@ -374,7 +399,6 @@ jQuery(document).ready(function($)
         }
         ;
         $('#calculate').off('click');
-        $("#TemplateButton").hide();
         $('#Product').attr('disabled', 'disabled');
         $('[id=foamType]').attr('disabled', 'disabled');
         $('#shape li').off('click');
@@ -395,21 +419,27 @@ jQuery(document).ready(function($)
         $.post(ajaxurl, data, function(response)
         {
             $("#shapeinfo input").remove();
-            $("#UnitBox").show(); //Show the unit box after selection 
 
             var AJAXresponse = response.split('||');
             var name = AJAXresponse[0];
             var url = AJAXresponse[1];
-            var coords = AJAXresponse[2];
+            Shapeimgid = AJAXresponse[2];
+            var tooltip = AJAXresponse[3];
+            var coords = AJAXresponse[4];
             var c = coords.split('`');
             if (amount === 12)
             {
-                $("#TemplateButton").prepend("If you would like a shape which is not shown, please provide us with a template\n\
-                                         and send it to us with our order form");
-                $("#TemplateButton").show();
+                $('#calculate').off('click');
+                $('#UnitBox').hide();
+                $('#DropDownBox').hide();
+                $("#CustomBoxHolder").show();
             }
             else
             {
+                $("#UnitBox").show(); //Show the unit box after selection 
+                $('#DropDownBox').show();
+                $("#CustomBoxHolder").hide();
+
                 for (var i = 0; i < c.length - 2; i++)
                 {
                     var d = c[i].split(',');
@@ -424,16 +454,17 @@ jQuery(document).ready(function($)
                     $("#ContainerBox_" + i).prepend("<input class='BoxOveride' type='text' name=Box_" + i + " placeholder='0' >");
                     $("#ContainerBox_" + i).append("<label class='labels'> " + $("#UnitSelect option:selected").text() + "</label>");
                 }
-                
-                    var d = c[i].split(',');
-                    var xx = [];
-                    var yy = [];
-                    xx.push(d[0]);
-                    yy.push(d[1]);
+
+                var d = c[i].split(',');
+                var xx = [];
+                var yy = [];
+                xx.push(d[0]);
+                yy.push(d[1]);
 
                 if (ddboxdraw == false)
                 {
                     $("#DropDownContainer").append("<div id=DropDownBox>");
+                    $("#DropDownBox").append(tooltip);
                     $("#DropDownBox").prepend("<select class='DDOveride' id=dropdownZ>");
                     $("#DropDownBox").css({'position': 'absolute', 'top': +xx + 'px', 'left': +yy + 'px', 'width': '100px', 'height': '20px'});
                     $("#DropDownBox").append("<label class='labels'> " + $("#UnitSelect option:selected").text() + "</label>");
@@ -443,44 +474,62 @@ jQuery(document).ready(function($)
                 {
                     $("#DropDownBox").css({'position': 'absolute', 'top': +xx + 'px', 'left': +yy + 'px', 'width': '100px', 'height': '20px'});
                 }
+
+                $("#calculate").on('click', function()
+                {
+                    if ($("#ShapeFormID").valid() && $("#quant").valid() && $("#DropDownContainer").valid())
+                    {
+                        $("#step5id").empty();
+                        $("#step3id").empty();
+                        CalculateAJAX();
+                    }
+                    else {
+                        $('#errordiv').html("There is an error. You must correct it before you can continue.");
+                        if (!$("#quant").valid()) {
+                            $("#step5id").empty();
+                            $("#step5id").append("Please enter a valid number");
+                        }
+                        else {
+                            $("#step5id").empty();
+                        }
+                        ;
+                        if (!$("#ShapeFormID").valid() || !$("#DropDownContainer").valid())
+                        {
+                            $("#step3id").empty();
+                            $("#step3id").append("Please review your measurements");
+                        }
+                        else {
+                            $("#step3id").empty();
+                        }
+                    }
+                });
+
+                $('#ShapeFormID').validate({
+                    focusInvalid: false,
+                    errorPlacement: function(error, element) {
+                        error.insertAfter(element, "#step3");
+                    }
+
+                });
+
+                $('.BoxOveride').each(function() {
+                    $(this).rules('add', {
+                        required: true,
+                        number: true,
+                        min: 0.25,
+                        max: 500,
+                        messages: {
+                            required: "Please enter a measurement",
+                            number: "Please enter a number",
+                            min: "Please enter a number higher than '0.25'",
+                            max: "Please enter a number lower than '500'"
+                        }
+                    });
+                });
             }
 
             $('#shape li').on('click', function() {
                 ShapesAjax($(this));
-            });
-
-            $("#calculate").on('click', function()
-            {
-                if ($("#ShapeFormID").valid() && $("#quant").valid() && $("#DropDownContainer").valid())
-                {
-                    CalculateAJAX();
-                }
-                else {
-                    $('#errordiv').html("There is an error. You must correct it before you can continue.");
-                }
-            });
-
-            $('#ShapeFormID').validate({
-                focusInvalid: false,
-                errorPlacement: function(error, element) {
-                    error.insertAfter(element);
-                }
-
-            });
-
-            $('.BoxOveride').each(function() {
-                $(this).rules('add', {
-                    required: true,
-                    number: true,
-                    min: 0.25,
-                    max: 500,
-                    messages: {
-                        required: "Please enter a measurement",
-                        number: "Please enter a number",
-                        min: "Please enter a number higher than '0.25'",
-                        max: "Please enter a number lower than '500'"
-                    }
-                });
             });
 
             $("#ShapeTitle").html(name);
@@ -548,22 +597,23 @@ jQuery(document).ready(function($)
         $('#calculate').off('click');
         $("#errordiv").empty();
         $("#buttons").hide();
-        
+
         $("#QuoteDescription").empty();
         $("#QuoteQuantityCont").empty();
         $("#QuoteTotalPriceCont").empty();
-        
+
         $("#QuoteBox").show();
         $("#QuoteContent").hide();
         $("#Load").show();
         var inchcm = $("#UnitSelect").val();
         // Calculates the extras and the cost  //
         quantityFinal = $("#quantity").val();        //
-        var squareFeet, wrapPointer, bondingCharge, overallTopperPrice = 0, cushiontotal = 0, //
+        var squareFeet, wrapPointer = 0, bondingCharge, overallTopperPrice = 0, cushiontotal = 0, //
                 Wrap = 0, Holes = 0, NetPrice = 0, VatPrice = 0;                          //  Reset variables
         GrossPrice = 0;
 
         var dimensionsArray = [];
+        dimensionsFinal = [];
         dimensionsArray[0] = $("input[name='Box_0']").val();
         dimensionsArray[1] = $("input[name='Box_1']").val();
         if (!dimensionsArray[1] >= 1) {
@@ -592,7 +642,8 @@ jQuery(document).ready(function($)
             dimensionsFinalCopy.push($("input[name='Box_" + i + "']").val());
         }
 
-        // calculate price from foam type and measurements                           
+        // calculate price from foam type and measurements    
+
         var rawprice = RawPrice(dimensionsFinal, price);
 
         if (rawprice < 2) {
@@ -600,77 +651,67 @@ jQuery(document).ready(function($)
         } //Enforce the minimum price of £2
 
         // Wrap calculator
-        squareFeet = dimensionsFinal[0] * dimensionsFinal[1] / 144;
+        if (extrasobject.polywrapextra.id > 0) {
+            squareFeet = dimensionsFinal[0] * dimensionsFinal[1] / 144;
 
-        squareFeet = squareFeet.toFixed(1);
+            squareFeet = squareFeet.toFixed(1);
 
-        if (squareFeet > 0 && squareFeet < 2)
-            wrapPointer = 9;
-        else if (squareFeet >= 2.1 && squareFeet <= 3.6)
-            wrapPointer = 10;
-        else if (squareFeet >= 3.7 && squareFeet <= 6.1)
-            wrapPointer = 11;
-        else if (squareFeet >= 6.2 && squareFeet <= 9)
-            wrapPointer = 12;
-        else if (squareFeet >= 9.1 && squareFeet <= 12)
-            wrapPointer = 13;
-        else if (squareFeet >= 12.1 && squareFeet <= 15)
-            wrapPointer = 14;
-        else if (squareFeet >= 15.1 && squareFeet <= 24)
-            wrapPointer = 15;
-        else if (squareFeet >= 24.1)
-            wrapPointer = 16;
-        var WrapData = {
-            'action': 'wrap_price_call',
+            if (squareFeet > 0 && squareFeet < 2)
+                wrapPointer = 9;
+            else if (squareFeet >= 2.1 && squareFeet <= 3.6)
+                wrapPointer = 10;
+            else if (squareFeet >= 3.7 && squareFeet <= 6.1)
+                wrapPointer = 11;
+            else if (squareFeet >= 6.2 && squareFeet <= 9)
+                wrapPointer = 12;
+            else if (squareFeet >= 9.1 && squareFeet <= 12)
+                wrapPointer = 13;
+            else if (squareFeet >= 12.1 && squareFeet <= 15)
+                wrapPointer = 14;
+            else if (squareFeet >= 15.1 && squareFeet <= 24)
+                wrapPointer = 15;
+            else if (squareFeet >= 24.1)
+                wrapPointer = 16;
+        }
+
+        var ExtraData = {
+            'action': 'extra_price_call',
             'wrapPriceid': wrapPointer,
-            'wrapColumnid': extrasobject.polywrapextra.id};
-
-        var TopperData = {
-            'action': 'topper_price_call',
-            'topperid': extrasobject.topperextra.id};
-
-
-        var HolesData = {
-            'action': 'holes_price_call',
+            'wrapColumnid': extrasobject.polywrapextra.id,
+            'topperid': extrasobject.topperextra.id,
             'holesid': extrasobject.holesextra.id};
 
-        $.when(
-                $.post(ajaxurl, WrapData, function(response)
-                {
+        $.post(ajaxurl, ExtraData, function(response)
+        {
+            response = JSON.parse(response);
+            console.log(response);
+            if ($("#polywrap").is(':checked') || $("#stockinette").is(':checked'))
+            {
+                Wrap = response[0];
+            }
 
-                    if ($("#polywrap").is(':checked') || $("#stockinette").is(':checked'))
-                    {
-                        Wrap = response;
-                    }
-                }),
-                $.post(ajaxurl, TopperData, function(response)
-                {
-                    if ($("#topper").is(':checked'))
-                    {
+            if ($("#topper").is(':checked'))
+            {
 
-                        if ($("#TopperTypeList").val() >= 23) {
-                            dimensionsFinal[2] = "2";
-                        } else {
-                            dimensionsFinal[2] = "1";
-                        }
-                        overallTopperPrice = RawPrice(dimensionsFinal, response);
+                if ($("#TopperTypeList").val() >= 23) {
+                    dimensionsFinal[2] = "2";
+                } else {
+                    dimensionsFinal[2] = "1";
+                }
+                overallTopperPrice = RawPrice(dimensionsFinal, response[1]);
 
-                        bondingCharge = overallTopperPrice * 0.10;
-                        bondingCharge = bondingCharge.toFixed(2);
+                bondingCharge = overallTopperPrice * 0.10;
+                bondingCharge = bondingCharge.toFixed(2);
 
-                        overallTopperPrice = parseFloat(overallTopperPrice) + parseFloat(bondingCharge);
-                        overallTopperPrice = overallTopperPrice.toFixed(2);
+                overallTopperPrice = parseFloat(overallTopperPrice) + parseFloat(bondingCharge);
+                overallTopperPrice = overallTopperPrice.toFixed(2);
 
-                    }
-                }),
-                $.post(ajaxurl, HolesData, function(response)
-                {
-                    if ($("#holes").is(':checked'))
-                    {
-                        Holes = response;
-                    }
-                })
-                ).then(function() {
+            }
+
+            if ($("#holes").is(':checked'))
+            {
+                Holes = response[2];
+            }
 
             cushiontotal = parseFloat(rawprice) + parseFloat(Wrap) + parseFloat(overallTopperPrice) + parseFloat(Holes);
             cushiontotal = cushiontotal.toFixed(2);
@@ -695,21 +736,22 @@ jQuery(document).ready(function($)
 
             //Quote description
             $("#QuoteDescription").empty();
-            
-            $("#QuoteDescription").html("<b>"+Foamname+"</b>");
-            
-            $("#QuoteDescription").append("<br><b>Dimensions:</b> " + dimensionsFinalCopy + " " + $("#UnitSelect option:selected").text());           
-            
+
+            $("#QuoteDescription").html("<b>" + Foamname + "</b>");
+
+            $("#QuoteDescription").append("<br><b>Length: </b>" + dimensionsFinalCopy[0] +
+                    " <b>Width:</b> " + dimensionsFinalCopy[1] + " <b>Depth</b> " + dimensionsFinalCopy[2] + " " + $("#UnitSelect option:selected").text());
+
             if (extrasobject.polywrapextra.id > 0)
             {
                 $("#QuoteDescription").append("<br><b>Polywrap:</b> " + extrasobject.polywrapextra.name);
             }
-            
+
             if (extrasobject.topperextra.id > 0)
             {
                 $("#QuoteDescription").append("<br><b>Topper:</b> " + extrasobject.topperextra.name);
             }
-            
+
             if (extrasobject.holesextra.id > 0)
             {
                 $("#QuoteDescription").append("<br><b>Holes:</b> " + extrasobject.holesextra.name);
@@ -719,7 +761,7 @@ jQuery(document).ready(function($)
             {
                 $("#QuoteDescription").append("<br>Stockinette: " + extrasobject.stockinetteextra.name);
             }
-   
+
             $("#Load").hide();
             $("#QuoteContent").show();
             $("#buttons").show();
@@ -739,15 +781,32 @@ jQuery(document).ready(function($)
             {
                 if ($("#ShapeFormID").valid() && $("#quant").valid() && $("#DropDownContainer").valid())
                 {
+                    $("#step5id").empty();
+                    $("#step3id").empty();
                     CalculateAJAX();
                 }
                 else {
                     $('#errordiv').html("There is an error. You must correct it before you can continue.");
+                    if (!$("#quant").valid()) {
+                        $("#step5id").empty();
+                        $("#step5id").append("Please enter a valid number");
+                    }
+                    else {
+                        $("#step5id").empty();
+                    }
+                    ;
+                    if (!$("#ShapeFormID").valid() || !$("#DropDownContainer").valid())
+                    {
+                        $("#step3id").empty();
+                        $("#step3id").append("Please review your measurements");
+                    }
+                    else {
+                        $("#step3id").empty();
+                    }
                 }
             });
 
         });
-
     }
 
 // EVENT LISTENERS 
@@ -765,12 +824,12 @@ jQuery(document).ready(function($)
         $("#Addedtocart").show();
         var data = {
             'action': 'create_product',
-            'name': 'Foam: ' + Foamname + ' Size: ' + dimensionsFinalCopy[0] +
-                    measurementunit + ' x ' + dimensionsFinalCopy[1] + measurementunit + ' x ' + dimensionsFinalCopy[2] + measurementunit,
+            'foamtype': Foamname,
             'foamprice': cushiontotalwithvat,
             'dimensions': dimensionsFinalCopy,
             'quantity': quantityFinal,
             'shapeid': ShapeId,
+            'shapeimgid': Shapeimgid,
             'polywrapid': extrasobject.polywrapextra.id,
             'topperid': extrasobject.topperextra.id,
             'holesid': extrasobject.holesextra.id,
